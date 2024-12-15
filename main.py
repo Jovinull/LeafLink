@@ -1,6 +1,7 @@
 import json
 from rich.console import Console
 from rich.table import Table
+from rich.prompt import Prompt
 
 class Node:
     def __init__(self, is_leaf=False):
@@ -132,32 +133,67 @@ class BPlusTree:
         traverse(self.root, 0)
         console.print(table)
 
+    def log_operations(self, operation, key=None, value=None):
+        with open("bplustree_log.txt", "a") as log_file:
+            if operation == "insert":
+                log_file.write(f"Inserted key={key}, value={value}\n")
+            elif operation == "search":
+                log_file.write(f"Searched for key={key}\n")
+
 # Demonstração
 if __name__ == "__main__":
+    console = Console()
+    console.print("[bold green]Bem-vindo ao Gerenciador de Dados com Árvore B+![/bold green]")
+
     # Criação da árvore com ordem 4
     bpt = BPlusTree(order=4)
 
-    # Inserção de dados fictícios
-    data = [
-        (1, "Produto A"),
-        (3, "Produto B"),
-        (7, "Produto C"),
-        (10, "Produto D"),
-        (15, "Produto E"),
-    ]
+    while True:
+        console.print("\n[bold yellow]Escolha uma opção:[/bold yellow]")
+        console.print("1. Inserir dados")
+        console.print("2. Buscar dados")
+        console.print("3. Exibir estrutura da árvore")
+        console.print("4. Salvar árvore em JSON")
+        console.print("5. Carregar árvore de JSON")
+        console.print("6. Sair")
 
-    for key, value in data:
-        bpt.insert(key, value)
+        choice = Prompt.ask("Digite o número da opção desejada")
 
-    # Salva a árvore em um arquivo JSON
-    bpt.save_to_file("bplustree.json")
+        if choice == "1":
+            key = int(Prompt.ask("Digite a chave (número inteiro)"))
+            value = Prompt.ask("Digite o valor")
+            bpt.insert(key, value)
+            bpt.log_operations("insert", key, value)
+            console.print(f"[green]Chave {key} com valor '{value}' inseridos com sucesso![/green]")
 
-    # Carrega a árvore do arquivo JSON
-    loaded_tree = BPlusTree.load_from_file("bplustree.json")
+        elif choice == "2":
+            key = int(Prompt.ask("Digite a chave para buscar"))
+            result = bpt.search(key)
+            bpt.log_operations("search", key=key)
+            if result:
+                console.print(f"[green]Valor encontrado: {result}[/green]")
+            else:
+                console.print("[red]Chave não encontrada.[/red]")
 
-    # Teste de busca
-    print(loaded_tree.search(7))  # Deve retornar "Produto C"
-    print(loaded_tree.search(4))  # Deve retornar None
+        elif choice == "3":
+            bpt.display()
 
-    # Exibição da estrutura da árvore
-    loaded_tree.display()
+        elif choice == "4":
+            filename = Prompt.ask("Digite o nome do arquivo JSON")
+            bpt.save_to_file(filename)
+            console.print(f"[green]Árvore salva em '{filename}' com sucesso![/green]")
+
+        elif choice == "5":
+            filename = Prompt.ask("Digite o nome do arquivo JSON")
+            try:
+                bpt = BPlusTree.load_from_file(filename)
+                console.print(f"[green]Árvore carregada de '{filename}' com sucesso![/green]")
+            except FileNotFoundError:
+                console.print(f"[red]Arquivo '{filename}' não encontrado.[/red]")
+
+        elif choice == "6":
+            console.print("[blue]Encerrando o programa. Até logo![/blue]")
+            break
+
+        else:
+            console.print("[red]Opção inválida. Tente novamente.[/red]")

@@ -1,0 +1,9 @@
+Inserted key=10, value=Casa
+Inserted key=9, value=Arvore
+Inserted key=2, value=Buraco
+Inserted key=17, value=Bolsonaro
+Inserted key=13, value=Lula
+Inserted key=10, value=Casa
+Inserted key=1, value=Buraco
+Inserted key=17, value=Bolsonaro
+Searched for key=17
