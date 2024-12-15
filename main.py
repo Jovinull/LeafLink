@@ -1,8 +1,30 @@
+import json
+
 class Node:
     def __init__(self, is_leaf=False):
         self.keys = []  # Chaves do nó
         self.children = []  # Filhos (ou valores, no caso de folhas)
         self.is_leaf = is_leaf
+
+    def to_dict(self):
+        return {
+            "keys": self.keys,
+            "children": [
+                child if self.is_leaf else child.to_dict() for child in self.children
+            ],
+            "is_leaf": self.is_leaf,
+        }
+
+    @staticmethod
+    def from_dict(data):
+        node = Node(is_leaf=data["is_leaf"])
+        node.keys = data["keys"]
+        node.children = (
+            data["children"]
+            if node.is_leaf
+            else [Node.from_dict(child) for child in data["children"]]
+        )
+        return node
 
 class BPlusTree:
     def __init__(self, order=3):
@@ -70,6 +92,28 @@ class BPlusTree:
                 return None
             node = node.children[i]
 
+    def to_dict(self):
+        return {
+            "order": self.order,
+            "root": self.root.to_dict(),
+        }
+
+    @staticmethod
+    def from_dict(data):
+        tree = BPlusTree(order=data["order"])
+        tree.root = Node.from_dict(data["root"])
+        return tree
+
+    def save_to_file(self, filename):
+        with open(filename, "w") as file:
+            json.dump(self.to_dict(), file, indent=4)
+
+    @staticmethod
+    def load_from_file(filename):
+        with open(filename, "r") as file:
+            data = json.load(file)
+        return BPlusTree.from_dict(data)
+
 # Demonstração
 if __name__ == "__main__":
     # Criação da árvore com ordem 4
@@ -87,6 +131,12 @@ if __name__ == "__main__":
     for key, value in data:
         bpt.insert(key, value)
 
+    # Salva a árvore em um arquivo JSON
+    bpt.save_to_file("bplustree.json")
+
+    # Carrega a árvore do arquivo JSON
+    loaded_tree = BPlusTree.load_from_file("bplustree.json")
+
     # Teste de busca
-    print(bpt.search(7))  # Deve retornar "Produto C"
-    print(bpt.search(4))  # Deve retornar None
+    print(loaded_tree.search(7))  # Deve retornar "Produto C"
+    print(loaded_tree.search(4))  # Deve retornar None
