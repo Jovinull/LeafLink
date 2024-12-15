@@ -1,4 +1,6 @@
 import json
+from rich.console import Console
+from rich.table import Table
 
 class Node:
     def __init__(self, is_leaf=False):
@@ -114,6 +116,22 @@ class BPlusTree:
             data = json.load(file)
         return BPlusTree.from_dict(data)
 
+    def display(self):
+        console = Console()
+        table = Table(title="B+ Tree Structure", show_lines=True)
+        table.add_column("Level", justify="center")
+        table.add_column("Keys", justify="center")
+
+        def traverse(node, level):
+            if node:
+                table.add_row(str(level), ", ".join(map(str, node.keys)))
+                if not node.is_leaf:
+                    for child in node.children:
+                        traverse(child, level + 1)
+
+        traverse(self.root, 0)
+        console.print(table)
+
 # Demonstração
 if __name__ == "__main__":
     # Criação da árvore com ordem 4
@@ -140,3 +158,6 @@ if __name__ == "__main__":
     # Teste de busca
     print(loaded_tree.search(7))  # Deve retornar "Produto C"
     print(loaded_tree.search(4))  # Deve retornar None
+
+    # Exibição da estrutura da árvore
+    loaded_tree.display()
